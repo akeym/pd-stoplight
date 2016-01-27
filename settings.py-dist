@@ -1,0 +1,21 @@
+# rpi stoplight settings
+
+# how often to check (in seconds)
+UPDATE_INTERVAL=60
+
+# what board pins to use for each color (GPIO.BOARD numbering)
+RED=22
+YELLOW=18
+GREEN=16
+
+# active high? or low? set it here.
+ON=False
+OFF=True
+
+# PagerDuty specific stuff
+PD_API_URL='https://CHANGEME.pagerduty.com/api/v1/incidents/count'
+PD_API_TOKEN=''
+# comma separated list of teams to filter by
+PD_TEAMS=''
+
+
