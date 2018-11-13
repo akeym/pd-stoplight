@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Make a traffic light display current alert state from OpsGenie
-# uses api v1
+# uses api v2
 
 import signal
 import sys
@@ -28,9 +28,6 @@ def signal_handler(signal, frame):
     GPIO.cleanup()
     sys.exit(0)
 
-def set_color(color):
-    return
-
 signal.signal(signal.SIGINT, signal_handler)
 
 GPIO.setmode(GPIO.BOARD)
@@ -38,13 +35,8 @@ GPIO.setup(RED,GPIO.OUT)
 GPIO.setup(YELLOW,GPIO.OUT)
 GPIO.setup(GREEN,GPIO.OUT)
 
-open_request_values = {'status': 'open',
-                            'teams': OG_TEAMS,
-                            'apiKey': OG_API_KEY }
-acked_request_values = {'status': 'acked',
-                        'teams': OG_TEAMS,
-                        'apiKey': OG_API_KEY }
-go_red=False
+open_request_values = {'query': 'status:open teams:' + OG_TEAMS}
+acked_request_values = {'query': 'status:open acknowledged:true teams:' + OG_TEAMS}
 
 open_request_params = urllib.urlencode(open_request_values)
 acked_request_params = urllib.urlencode(acked_request_values)
@@ -53,24 +45,24 @@ acked_request_params = urllib.urlencode(acked_request_values)
 open_request = urllib2.Request(OG_API_URL + '/?' + open_request_params)
 acked_request = urllib2.Request(OG_API_URL + '/?' + acked_request_params)
 
+open_request.add_header('Authorization','GenieKey ' + OG_API_KEY)
+acked_request.add_header('Authorization','GenieKey ' + OG_API_KEY)
+
 while True:
-    go_red=False
     try:
 	try:
             json_returned = urllib2.urlopen(open_request).read()
             parsed_json = json.loads(json_returned)
             print json_returned
-            if not parsed_json['alerts']:
+            if parsed_json['data']['count'] == 0:
                 off(RED)
                 off(YELLOW)
                 on(GREEN)
                 print "green"
             else:
-                for alert in parsed_json['alerts']:
-                    if not alert['acknowledged']:
-                        go_red=True
-                        break
-                if go_red:
+                json_returned = urllib2.urlopen(acked_request).read()
+                parsed_json = json.loads(json_returned)
+                if parsed_json['data']['count'] == 0:
                     off(GREEN)
                     off(YELLOW)
                     on(RED)
@@ -87,7 +79,6 @@ while True:
             off(GREEN)
     except urllib2.HTTPError,e:
         print e.code
-        #turn all lights off
         off(RED)
         off(YELLOW)
         off(GREEN)

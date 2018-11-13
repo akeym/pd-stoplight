@@ -18,4 +18,7 @@ PD_API_TOKEN=''
 # comma separated list of teams to filter by
 PD_TEAMS=''
 
+OG_API_URL='https://api.opsgenie.com/v2/alerts/count'
+OG_API_KEY=''
+OG_TEAMS=''
 
